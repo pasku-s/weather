@@ -1,0 +1,15 @@
+.full_abs(@w:100%,@h:100%){
+    position: absolute;
+    left: 0;
+    top:0;
+    margin: auto;
+    text-align: center;
+    .ful_size(@w,@h);
+}
+.ful_size(@w:100%,@h:100%){
+    width:@w;
+    height:@h;
+}
+.z(@z){
+    z-index: @z;
+}
