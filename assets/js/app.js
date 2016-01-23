@@ -148,7 +148,7 @@ var app = function () {
                 m.drawRain(rain);
                 $('body').css('background-color', bodyBack);
                 $(t.container).css('background', containerBack);
-                var interv = setInterval(function () {
+           /*     var interv = setInterval(function () {
 
                     if (t.currentLevel == pstClouds) {
                         clearInterval(interv);
@@ -157,7 +157,9 @@ var app = function () {
                         t.camera.position.y = t.currentLevel;
                         m.events.onDocumentMouseMove({clientX: 0, clientY: 0});
                     }
-                }, 80);
+                }, 80);*/
+                t.camera.position.y = t.currentLevel =pstClouds;
+                m.events.onDocumentMouseMove({clientX: 0, clientY: 0});
             }
 
         },
