@@ -1,0 +1,63 @@
+
+<title>little crazy World</title>
+<meta charset="utf-8">
+<link href='https://fonts.googleapis.com/css?family=Dancing+Script:700' rel='stylesheet' type='text/css'>
+<link href='assets/css/style.css' rel='stylesheet' type='text/css'>
+<link href='assets/css/main.css' rel='stylesheet' type='text/css'>
+
+<script src="bower_components/three.js/three.min.js"></script>
+<script  src="bower_components/jquery/dist/jquery.min.js"></script>
+<script  src="bower_components/tween.js/src/Tween.js"></script>
+<script  src="http://mrdoob.github.io/three.js/examples/js/shaders/ColorifyShader.js"></script>
+<script  src="http://mrdoob.github.io/three.js/examples/js/postprocessing/EffectComposer.js"></script>
+<script  src="http://mrdoob.github.io/three.js/examples/js/postprocessing/RenderPass.js"></script>
+<script  src="http://mrdoob.github.io/three.js/examples/js/postprocessing/ShaderPass.js"></script>
+<script  src="http://mrdoob.github.io/three.js/examples/js/shaders/CopyShader.js"></script>
+<script  src="http://mrdoob.github.io/three.js/examples/js/postprocessing/MaskPass.js"></script>
+<script  src="http://louisremi.github.io/jquery.transform.js/jquery.transform2d.js"></script>
+
+<script id="vs" type="x-shader/x-vertex">
+
+			varying vec2 vUv;
+
+			void main() {
+
+				vUv = uv;
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+			}
+
+
+
+
+
+
+</script>
+<script id="fs" type="x-shader/x-fragment">
+
+			uniform sampler2D map;
+
+			uniform vec3 fogColor;
+			uniform float fogNear;
+			uniform float fogFar;
+
+			varying vec2 vUv;
+
+			void main() {
+
+				float depth = gl_FragCoord.z / gl_FragCoord.w;
+				float fogFactor = smoothstep( fogNear, fogFar, depth );
+
+				gl_FragColor = texture2D( map, vUv );
+				gl_FragColor.w *= pow( gl_FragCoord.z, 20.0 );
+				gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
+
+			}
+
+
+
+
+
+
+</script>
+<script src="assets/js/app.js"></script>
