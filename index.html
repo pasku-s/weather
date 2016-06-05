@@ -5,7 +5,18 @@
     <meta charset="utf-8">
     <link href='https://fonts.googleapis.com/css?family=Dancing+Script:700' rel='stylesheet' type='text/css'>
     <link href='assets/css/style.css' rel='stylesheet' type='text/css'>
+    <link href='assets/css/main.css' rel='stylesheet' type='text/css'>
 </head>
+<style>
+    iframe{
+        position: fixed;
+        top:0;
+        left:0;
+        width: 100%;
+        height: 100%;
+        display: none;
+    }
+</style>
 <body>
 <!--
 
@@ -21,13 +32,15 @@
 <script src="bower_components/three.js/three.min.js"></script>
 <!--<script  src="assets/js/libs/build/three/TrackballControls.js"></script>-->
 <script  src="bower_components/jquery/dist/jquery.min.js"></script>
+<script  src="bower_components/tween.js/src/Tween.js"></script>
 <!--<script  src="assets/js/libs/rainyday.0.1.2.min.js"></script>-->
-<script  src="http://mrdoob.github.io/three.js/examples/js/shaders/ColorifyShader.js"></script>
-<script  src="http://mrdoob.github.io/three.js/examples/js/postprocessing/EffectComposer.js"></script>
-<script  src="http://mrdoob.github.io/three.js/examples/js/postprocessing/RenderPass.js"></script>
-<script  src="http://mrdoob.github.io/three.js/examples/js/postprocessing/ShaderPass.js"></script>
-<script  src="http://mrdoob.github.io/three.js/examples/js/shaders/CopyShader.js"></script>
-<script  src="http://mrdoob.github.io/three.js/examples/js/postprocessing/MaskPass.js"></script>
+<script  src="assets/js/shader/ColorifyShader.js"></script>
+<script  src="assets/js/postprocessing/EffectComposer.js"></script>
+<script  src="assets/js/postprocessing/RenderPass.js"></script>
+<script  src="assets/js/postprocessing/ShaderPass.js"></script>
+<script  src="assets/js/shader/CopyShader.js"></script>
+<script  src="assets/js/postprocessing/MaskPass.js"></script>
+<script  src="assets/js/jquery.transform2d.js"></script>
 
 <script id="vs" type="x-shader/x-vertex">
 
@@ -75,7 +88,74 @@
 </script>
 
 <script src="assets/js/app.js"></script>
+<div class="heads">
+    <div class="heads__viewport">
+        <div class="trigger__info trigger__info--arrow" style="bottom: 0px; opacity: 0.5;">
+            <svg xmln="http://www.w3.org/2000/svg" viewBox="0 0 25 20">
+                <path fill="none" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" d="M2.5,5L12.5 15 22.5 5"></path>
+            </svg>
+        </div>
+        <div class="trigger__info trigger__info--heads" style="opacity: 0;"><p class="trigger__info__text">BACK TO THE PRESENTATION</p>
+            <div class="trigger__info__bg trigger__info__bg--heads"></div>
+        </div>
+        <div class="trigger__info trigger__info--tails" style="opacity: 1;"><p class="trigger__info__text">ABOUT ME</p>
+            <div class="trigger__info__bg trigger__info__bg--tails"></div>
+        </div>
+        <div id="THREEJS"></div>
+    </div>
+</div>
+<div id="info" class="tails container">
+
+    <div class="container">
+        <h1>Hello, i'm Sam and i'm JS explorer</h1>
+        <p>After studying in Politechnical  University , I'm currently a front end <a href="http://unilimes.com/">Unilimes</a>, in the lovely city of Odessa.</p>
+        <p>You can find me on  <a href="https://github.com/Simon060893"> Github (Simon060893)</a>. And if you fancy it, even send me an email <a class="tails__link" href="mailto:paskusam@gmail.com?subject=Hi&amp;body=Hi S">email (paskusam@gmail.com)</a></p>
+    </div>
+    <div class="container">
+        <h1>My Skills</h1>
+        <h2>Javascript</h2>
+        <p>ES5 / ES6</p>
+        <p> Node.js</p>
+        <p> jQuery</p>
+        <p> WebGL: Three.js, GLSL</p>
+        <p> Canvas: paper.js</p>
+        <p> Animation: Tween.js</p>
+        <p> MV* Frameworks:  AngularJS</p>
+        <p> Package manager: Npm, Bower</p>
+        <p> features detection: Modernizr</p>
+
+        <h2>HTML / CSS</h2>
+        <p>HTML5 / CSS3</p>
+        <p>Preprocessors: LESS, SASS</p>
+
+      <h2>Misc</h2>
+        <p>PHP, Java SE/EE, SQL/PLSQL </p>
+        <p>Version control: Git, SVN</p>
+        <p>BD: Oracle 11xe,MySql, MongoDB</p>
+        <p>Design patterns: MV*, Pubsub, Modules, Singleton, Decorator, ...</p>
+        <p>3D: AutoCAD, 3dMax,Blender</p>
+
+
+       <!-- <div class="row">
+            <div class="col-sm-3" style="background-color:lavender;">WebGL:</div>
+            <div class="col-sm-9" style="background-color:lavenderblush;">Three.js, GLSL</div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3" style="background-color:lavender;">WebGL:</div>
+            <div class="col-sm-9" style="background-color:lavenderblush;">Three.js, GLSL</div>
+        </div>-->
+    </div>
+
+</div>
+<div class="trigger" style="top: auto; bottom: 0px;"></div>
+<div class="shader">
+    <!--<iframe width="640" height="360" frameborder="0" src="https://www.shadertoy.com/embed/ldXXDj?gui=false&t=10&paused=false&muted=true" allowfullscreen></iframe>-->
+    <iframe width="640" height="360" frameborder="0" src="https://www.shadertoy.com/embed/MscSD8?gui=false&t=10&paused=false&muted=false" allowfullscreen></iframe>
+</div>
+<div class="loader" >
+    <h3 class="text--center text--white loader__title is-active" >LOADING</h3>
+    <div class="loader__progress" style=" height: 10px;"></div></div>
 <!--<img id="background" alt="background" src=""/>-->
-<div id="scrollbar" class="scrollbar"></div>
+<!--<div id="scrollbar" class="scrollbar"></div>-->
 </body>
 </html>
