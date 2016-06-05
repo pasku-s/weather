@@ -1,8 +1,7 @@
 {
-  "name": "Sam Pasku Portfoilio",
+  "name": "Sam_Pasku_Portfoilio",
   "description": "Bla",
   "repository": "https://github.com/pasku-s/weather",
   "logo": "http://node-js-sample.herokuapp.com/node.svg",
-  "keywords": ["node", "express", "static"],
-  "image": "heroku/nodejs"
+  "keywords": ["node", "express", "static"]
 }
