@@ -6,7 +6,8 @@ var app = function () {
             scene: false,
             renderer: false,
             mesh: false, geometry: false, material: false,
-            mouseX: 0, mouseY: 0,
+            mouseX: 0,
+            mouseY: 0,
             start_time: Date.now(),
             texture: {},
             windowHalfX: window.innerWidth / 2,
@@ -14,26 +15,30 @@ var app = function () {
             cloudsDistance: [3000],
             storm: true,
             effects: ['blueSky', 'darkSky'],
+            sound: ['http://vaalentin.github.io/2015/app/public/sounds/wind.mp3'],
+            triggerEffect: 1,
             shaderRenderEnabled: false,
+            infoActive: false,
             currentEffect: 0,
             currentLevel: 0,
+            lastIndex: 0,
             direction: 1,
             zipperActive: false
         },
         init: function () {
             // Bg gradient
             this.drawBack();
-            var container = this.types.container = document.createElement('div');
-            document.body.appendChild(container);
-            $(container).css(
-                {
-                    'z-index': 1,
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    backgroundSize: '32px 100%'
-                }
-            );
+            var container = this.types.container = document.getElementById('THREEJS')//document.createElement('div');
+            /* document.body.appendChild(container);
+             $(container).css(
+             {
+             'z-index': 1,
+             position: 'absolute',
+             top: 0,
+             left: 0,
+             backgroundSize: '32px 100%'
+             }
+             );*/
 
             var camera = this.types.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 3000);
             var scene = this.types.scene = new THREE.Scene();
@@ -55,16 +60,28 @@ var app = function () {
             var colorifyPass = this.types.colorifyPass = new THREE.ShaderPass(THREE.ColorifyShader);
             composer.addPass(colorifyPass);
             var copyPass = new THREE.ShaderPass(THREE.CopyShader);
+            //colorifyPass.renderToScreen = true;
             copyPass.renderToScreen = true;
             composer.addPass(copyPass);
-
+            jQuery('.' + loadProcess).animate({width: (loadIter.val += loadIter.step) * loadIter.st + '%'});
 
             this.addEvents();
             this.drawClouds();
             this.setCloudsView(this.types.effects[0]);
             this.drawRain(false);
             this.buildScroll();
+            this.triggerEffects();
             this.animate();
+
+            this.types.sound = [new app.Sound([this.types.sound])];
+            var parent = jQuery('.' + loadProcess).animate({width: (loadIter.val += loadIter.step) * loadIter.st + '%'}).parent();
+            var setIn = setInterval(function () {
+                if ((window.innerWidth - 200) < jQuery('.' + loadProcess).width()) {
+                    jQuery(parent).fadeOut();
+                    ap.methods.types.infoActive = true;
+                    clearInterval(setIn);
+                }
+            }, 100)
 
         },
         drawClouds: function () {
@@ -107,6 +124,7 @@ var app = function () {
             mesh.position.z = -dist;
             clouds.add(mesh);
             t.scene.add(clouds);
+            jQuery('.' + loadProcess).animate({width: (loadIter.val += loadIter.step) * loadIter.st + '%'});
         },
         setCloudsView: function (type) {
             var fog = false,
@@ -116,6 +134,8 @@ var app = function () {
                 m = ap.methods,
                 t = m.types,
                 rain = false;
+            if (t.lastTypeView == type)return;
+            t.lastTypeView = type;
             switch (type) {
                 case 'blueSky':
                 {
@@ -148,19 +168,14 @@ var app = function () {
                 m.drawRain(rain);
                 $('body').css('background-color', bodyBack);
                 $(t.container).css('background', containerBack);
-           /*     var interv = setInterval(function () {
-
-                    if (t.currentLevel == pstClouds) {
-                        clearInterval(interv);
-                    } else {
-                        t.currentLevel -= 10 * t.direction;
-                        t.camera.position.y = t.currentLevel;
-                        m.events.onDocumentMouseMove({clientX: 0, clientY: 0});
-                    }
-                }, 80);*/
-                t.camera.position.y = t.currentLevel =pstClouds;
+                //t.camera.position.y = t.currentLevel =pstClouds;
+                t.currentLevel = pstClouds;
                 m.events.onDocumentMouseMove({clientX: 0, clientY: 0});
             }
+
+            $('.circleActive').removeClass('circleActive');
+            var circle = document.getElementsByClassName('circle')[t.currentEffect];
+            if (circle) circle.className += ' circleActive';
 
         },
         drawBack: function () {
@@ -186,6 +201,7 @@ var app = function () {
         drawRain: function (flag) {///x [-150,150],y[-50,50]
             var t = ap.methods.types, rain = t.rain;
             if (!rain) {
+                console.log('rain create');
                 var vertices = [], step = -t.cloudsDistance + (t.cloudsDistance * 0.85),
                     min = 1, max = 8;
                 for (var i = step; i < 0;) {
@@ -206,7 +222,7 @@ var app = function () {
 //                        size: 1.5,
                     map: textures[1],
 //                        blending: THREE.AdditiveBlending,
-                    opacity: 0.4,
+                    opacity: 0.7,
                     transparent: true
                 });
 //                    ap.methods.types.rain=  rain = new THREE.Points(geom,materials);
@@ -222,7 +238,7 @@ var app = function () {
             rain.visible = flag;
             t.zipperActive = flag;
             if (flag) {
-                this.drawZipper(true);
+                this.drawZipper();
             }
             /*setTimeout(function () {
              ap.methods.enableRainDay(flag);
@@ -251,7 +267,7 @@ var app = function () {
             }, 100);
         },
         drawZipper: function (flag) {
-            var time = flag ? 0 : this.randomInteger(100, 2000);
+            var time = flag ? 0 : this.randomInteger(500, 2000);
             setTimeout(function () {
                 var m = ap.methods,
                     webglObj = m.types,
@@ -293,7 +309,7 @@ var app = function () {
         animate: function () {
             var methds = ap.methods, a = methds.types;
             var position = ( ( Date.now() - a.start_time ) * 0.03 ) % a.cloudsDistance;
-            if ((position + 200) > a.cloudsDistance)ap.methods.types.start_time = a.start_time = Date.now();
+
             a.camera.position.x += ( a.mouseX - a.camera.position.x ) * 0.01;
             a.camera.position.y += ( -a.mouseY - a.camera.position.y ) * 0.01;
             //console.log(a.camera.position.y,a.mouseY);
@@ -304,8 +320,9 @@ var app = function () {
                 a.rain.position.set(a.camera.position.x + 40, a.camera.position.y, a.camera.position.z + 50);
                 if (a.zipperMesh) {
                     if (a.zipperMesh.material.opacity > 0.3) {
-                        a.zipperMesh.material.opacity -= 0.1;
+                        a.zipperMesh.material.opacity -= 0.05;
                         a.storm = true;
+
                     } else {
                         a.scene.remove(a.zipperMesh);
                         a.zipperMesh = false;
@@ -318,10 +335,11 @@ var app = function () {
                     if (flashColor > 0) {
                         flashColor -= flashSpeed;
                         a.colorifyPass.uniforms["color"].value.setRGB(flashColor, flashColor, flashColor);
-                        if (flashColor < 0) {
+                        if (flashColor <= 0) {
                             flashColor = 0;
                         }
                     }
+
                 }
             } else if (a.zipperMesh) {
                 if (a.zipperMesh) {
@@ -331,11 +349,22 @@ var app = function () {
             }
             //set render
             if (a.shaderRenderEnabled) {
-                a.composer.render();
+            a.composer.render();
             } else {
                 a.renderer.render(a.scene, a.camera);
             }
+            if ((position + 2200) > a.cloudsDistance)ap.methods.types.start_time = Date.now();
             requestAnimationFrame(ap.methods.animate);
+        },
+        smoothFlipped: function (bgn, end, update) {
+            var tween = new TWEEN.Tween({alpha: 0}).to({alpha: 1}, 5000)
+                .easing(TWEEN.Easing.Linear.None)
+                .onUpdate(function () {
+
+                    bgn.lerp(end, this.alpha);
+                    console.log('test');
+                    if (update)update.call(this, this, tween);
+                }).start();
         },
         randomInteger: function (min, max) {
             var rand = min + Math.random() * (max - min)
@@ -344,19 +373,102 @@ var app = function () {
         },
         buildScroll: function () {
             var t = this.types,
+                CIRCLE_CLASS = t.CIRCLE_CLASS = 'circle',
+                CIRCLE_ACTIVE = t.CIRCLE_ACTIVE = ' circleActive',
+                SCROLLBAR = t.SCROLLBAR = 'scrollbar',
+                CIRCLE_CONTAINER = t.CIRCLE_CONTAINER = 'circleContain',
                 scrollBar = this.types.scrollBar = document.createElement('div');
+
             document.body.appendChild(scrollBar);
-            scrollBar.id = scrollBar.className = 'scrollbar';
+            scrollBar.id = scrollBar.className = SCROLLBAR;
             var circleContain = document.createElement('div');
-            circleContain.className = 'circleContain';
+            circleContain.className = CIRCLE_CONTAINER;
             scrollBar.appendChild(circleContain);
             for (var i = 0; i < t.effects.length; i++) {
                 var circle = document.createElement('div');
                 circleContain.appendChild(circle);
-                circle.className = 'circle';
-                if (i == 0)  circle.className += ' circleActive';
+                circle.className = CIRCLE_CLASS;
+                if (i == 0)  circle.className += CIRCLE_ACTIVE;
             }
 
+            jQuery('.' + CIRCLE_CLASS).bind('mouseup', function () {
+                var m = ap.methods,
+                    t = m.types,
+                    lastIndex = t.lastIndex,
+                    curIndex = $(this).index(),
+                    interv = curIndex - lastIndex,
+                    curDirection = (interv > 0 ? m.events.scroll.down : m.events.scroll.up),
+                    iter = Math.abs(interv);
+                t.lastIndex = curIndex;
+
+                for (var i = 0; i < iter; i++) {
+                    setTimeout(function () {
+                        curDirection();
+                    }, i * 100);
+                }
+            });
+            //jQuery('.'+loadProcess).animate({ width: (loadIter.val+=loadIter.step)*loadIter.st+'%' });
+        },
+        triggerEffects: function () {
+            var trigger = 'trigger',
+                heads = 'heads',
+                tails = 'tails',
+                arrow = 'trigger__info--arrow',
+                about_me = 'trigger__info--tails',
+                t = ap.methods.types;
+            t.headsTrfnsDft = 0;
+            t.tailsTrfnsDft = 0;
+
+            $('.' + trigger)
+                .mouseenter(function () {
+                    var hTr = t.headsTrfnsDft + 0,
+                        tTr = t.tailsTrfnsDft + 0;
+                    if (t.triggerEffect % 2 == 0) {
+                        hTr += 50;
+                        tTr += 50;
+                    } else {
+                        hTr += -50;
+                        tTr += 50;
+                    }
+                    $('.' + heads).animate({transform: 'translateY(' + hTr + 'px)'});
+                    $('.' + tails).animate({transform: 'translateY(' + tTr + 'px)'});
+                    $('.' + arrow).animate({opacity: 0});
+                })
+                .mouseleave(function () {
+                    $('.' + heads).animate({transform: 'translateY(' + t.headsTrfnsDft + 'px)'});
+                    $('.' + tails).animate({transform: 'translateY(' + t.tailsTrfnsDft + 'px)'});
+                    $('.' + arrow).animate({opacity: 0.5});
+                })
+                .mouseup(function () {
+                    var b = 0,
+                        top = 'auto',
+                        del = 0,
+                        tH = $('.' + tails).height() + del,
+                        hH = $('.' + heads).height() + del,
+                        opac = 0;
+
+
+                    if (++t.triggerEffect % 2 == 0) {
+                        b = 'auto';
+                        top = 0;
+                        t.headsTrfnsDft = -hH;
+                        t.tailsTrfnsDft = -hH;
+                        $('.' + t.SCROLLBAR).fadeOut(100);
+                        $('iframe').fadeIn();
+                    } else {
+                        t.headsTrfnsDft = 0;
+                        t.tailsTrfnsDft = 0;
+                        $('.' + t.SCROLLBAR).fadeIn(1000);
+                        $('iframe').fadeOut();
+                        opac = 1;
+                    }
+
+                    $('.' + heads).animate({transform: 'translateY(' + ( t.headsTrfnsDft) + 'px)'});
+                    $('.' + tails).animate({transform: 'translateY(' + t.tailsTrfnsDft + 'px)'});
+                    $('.' + about_me).animate({opacity: opac});
+                    $(this).css({top: top, bottom: b});
+                    t.infoActive = opac;
+                });
         },
         addEvents: function () {
             var t = this.types,
@@ -386,17 +498,32 @@ var app = function () {
                 a.mouseY = ( event.clientY - (a.windowHalfY) ) * 0.15 - a.currentLevel;
             },
             onWheel: function (e) {
-                var m = ap.methods, t = m.types;
+                var m = ap.methods, t = m.types,
+                    bgn = t.camera.position,
+                    endCameraMove = bgn.clone(),
+                    delta = 2000;
                 e = e || window.event;
                 var delta = e.deltaY || e.detail || e.wheelDelta;
-                t.direction = delta / 100;
-                if (delta > 0) {
-                    m.events.scroll.down();
-                } else {
-                    m.events.scroll.up();
+                ap.methods.types.start_time = Date.now();
+                if (t.infoActive) {
+                    t.direction = delta / 100;
+                    t.sound[0].play();
+                    if (delta > 0) {
+                        m.events.scroll.down();
+                    } else {
+                        m.events.scroll.up();
+                    }
                 }
-                $('.circleActive').removeClass('circleActive');
-                document.getElementsByClassName('circle')[t.currentEffect].className += ' circleActive';
+
+                endCameraMove.y = t.currentLevel;
+                m.smoothFlipped(bgn, endCameraMove, function (end, tween) {
+                    if (end.alpha > 0.32) {
+                        tween.stop();
+                        tween.remove();
+                    }
+                });
+
+
                 e.preventDefault ? e.preventDefault() : (e.returnValue = false);
             },
             scroll: {
@@ -419,15 +546,41 @@ var app = function () {
                 }
             },
             onWindowResize: function (event) {
-                var a = ap.methods.types;
-                a.camera.aspect = window.innerWidth / window.innerHeight;
+                var a = ap.methods.types,
+                    _w = window.innerWidth,//jQuery(a.container).width(),
+                    _h = window.innerHeight//jQuery(a.container).height()
+                    ;
+                a.camera.aspect = _w / _h;
                 a.camera.updateProjectionMatrix();
-                a.renderer.setSize(window.innerWidth, window.innerHeight);
+                a.renderer.setSize(_w, _h);
+                if (a.headsTrfnsDft) {
+                    var heads = 'heads',
+                        tails = 'tails';
+                    var del = 0, hH = $('.' + heads).height() + del;
+                    a.headsTrfnsDft = a.tailsTrfnsDft = -hH;
+                    $('.' + heads).animate({transform: 'translateY(' + ( a.headsTrfnsDft) + 'px)'});
+                    $('.' + tails).animate({transform: 'translateY(' + a.tailsTrfnsDft + 'px)'});
+
+                }
 //                    $('#RainyDay').width(window.innerWidth);
 //                    $('#RainyDay').height(window.innerHeight);
 
             }
         }
+    }
+};
+app.Sound = function (sources) {
+    var audio = document.createElement('audio');
+
+    for (var i = 0; i < sources.length; i++) {
+        var source = document.createElement('source');
+        source.src = sources[i];
+        audio.appendChild(source);
+    }
+
+    this.play = function () {
+        audio.load();
+        audio.play();
     }
 }
 flashColor = 0,
@@ -435,20 +588,25 @@ flashColor = 0,
 var loaderr = function () {
     new THREE.TextureLoader().load(imgLoad.shift(), function (data) {
         textures.push(data);
+        jQuery('.' + loadProcess).animate({width: (loadIter.val += loadIter.step) * loadIter.st + '%'});
         if (imgLoad.length) {
             loaderr();
         } else {
             ap = new app();
+
             ap.methods.init();
         }
     })
 }
 var ap,
     textures = [],
+    loadProcess = 'loader__progress',
+    loadIter = {step: 5, val: 0, st: 5},
     imgLoad = [
         'assets/data/img/cloud10 (1).png',
         'assets/data/img/raindrop.png'
     ];
 $(document).ready(function () {
     loaderr();
+
 });
